@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuantumOS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='3' width='8' height='8'/%3E%3Crect x='13' y='3' width='8' height='8'/%3E%3Crect x='3' y='13' width='8' height='8'/%3E%3Ccircle cx='17' cy='17' r='4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --bar-h: 28px;
+  --task-h: 44px;
+
+  --desk: #4d7c7a;
+  --chrome: #d9dcd6;
+  --chrome-d: #c3c7bf;
+  --paper: #fbfbf8;
+  --ink: #1e1f1e;
+  --ink-2: #565b56;
+  --line: #1e1f1e;
+  --rule: #b4b8b0;
+  --accent: #2f54d6;
+  --on-accent: #ffffff;
+  --hi: #f2c744;
+  --bad: #b9382a;
+  --good: #2f7d4f;
+  --shadow: rgba(0, 0, 0, .35);
+}
+[data-theme="dark"] {
+  --desk: #1d3231;
+  --chrome: #2a2e2c;
+  --chrome-d: #353a37;
+  --paper: #191b1a;
+  --ink: #e8eae5;
+  --ink-2: #a2a8a1;
+  --line: #6f7771;
+  --rule: #454a46;
+  --accent: #8aa4ff;
+  --on-accent: #101318;
+  --hi: #e8b94a;
+  --bad: #ef8b7a;
+  --good: #6cc48b;
+  --shadow: rgba(0, 0, 0, .55);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink);
+  background: #101312;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+input, textarea { user-select: text; -webkit-user-select: text; }
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+p { margin: 0; }
+.sub { font-size: 12px; color: var(--ink-2); }
+
+.ic { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* ---------- Wallpapers (flat colour and pattern, no photos) ---------- */
+.wall { position: fixed; inset: 0; }
+.w-teal  { background-color: var(--desk); background-image: radial-gradient(rgba(0,0,0,.16) 1px, transparent 1.3px); background-size: 5px 5px; }
+.w-graph { background-color: #2e4259; background-image: linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px); background-size: 36px 36px; }
+.w-olive { background-color: #66723f; background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.1) 0 2px, transparent 2px 9px); }
+.w-paper { background-color: #c8cac3; }
+
+/* ---------- Shared controls ---------- */
+.btn {
+  height: 30px; padding: 0 12px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1.5px solid var(--line); border-radius: 4px;
+  background: var(--chrome); color: var(--ink);
+  font-size: 13px; font-weight: 700;
+}
+.btn:hover { background: var(--chrome-d); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.danger { color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; font-size: 12px; text-align: left; }
+.field {
+  height: 32px; padding: 0 8px; width: 100%;
+  border: 1.5px solid var(--line); border-radius: 4px;
+  background: var(--paper); color: var(--ink); font: inherit;
+}
+.field.grow { flex: 1; min-width: 0; }
+.err { color: var(--bad); font-size: 13px; min-height: 1.4em; }
+.avatar {
+  display: grid; place-items: center; flex: none;
+  width: 32px; height: 32px;
+  border: 1.5px solid var(--line); border-radius: 6px;
+  background: var(--hi); color: #1e1f1e; font-weight: 700;
+}
+.avatar.big { width: 48px; height: 48px; font-size: 20px; }
+.seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 5px; overflow: hidden; }
+.seg button { height: 28px; padding: 0 12px; border: 0; background: var(--paper); font-size: 13px; }
+.seg button + button { border-left: 1.5px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); font-weight: 700; }
+
+.appicon {
+  --s: 28px;
+  width: var(--s); height: var(--s);
+  display: grid; place-items: center; flex: none;
+  border: 1.5px solid #1e1f1e; border-radius: calc(var(--s) * .25);
+  background: var(--c, #cfd1cb); color: #1e1f1e;
+}
+.appicon .ic { width: 58%; height: 58%; }
+.c-blue { --c: #93b7e6; } .c-yellow { --c: #f2c744; } .c-green { --c: #a3d1a0; }
+.c-red { --c: #eb9a8a; } .c-grey { --c: #cfd1cb; } .c-white { --c: #f4f4ef; }
+
+/* ---------- Boot (black screen, logo, thin bar) ---------- */
+#boot {
+  position: fixed; inset: 0; z-index: 900;
+  background: #000; color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 64px;
+  cursor: none;
+}
+#boot.out { opacity: 0; transition: opacity .45s ease-in; }
+.boot-logo { width: 88px; height: 88px; fill: #fff; stroke: none; animation: bootLogo .9s ease-out both; }
+#boot-bar { width: 168px; height: 5px; border-radius: 3px; background: #3a3a3a; overflow: hidden; animation: fadeIn .5s .5s ease-out both; }
+#boot-fill { display: block; width: 0; height: 100%; border-radius: 3px; background: #fff; transition: width .35s ease-out; }
+
+/* ---------- Welcome (after sign-in) ---------- */
+#welcome { z-index: 870; }
+#welcome::before { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, .42); }
+.welcome-card { position: relative; display: grid; justify-items: center; gap: 16px; color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,.35); }
+.welcome-card .avatar { width: 96px; height: 96px; font-size: 40px; border-radius: 20px; }
+.welcome-card b { font-size: 24px; font-weight: 400; }
+.welcome-card p { font-size: 16px; }
+.spinner { position: relative; width: 44px; height: 44px; margin: 14px 0 6px; }
+.spinner i { position: absolute; inset: 0; opacity: 0; animation: orbit 2.4s linear infinite; animation-delay: calc(var(--i) * .15s); }
+.spinner i::after { content: ""; position: absolute; top: 0; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: #fff; }
+@keyframes orbit {
+  0% { transform: rotate(0deg); opacity: 0; }
+  4% { opacity: 1; }
+  35% { transform: rotate(230deg); }
+  65% { transform: rotate(310deg); }
+  95% { transform: rotate(720deg); opacity: 1; }
+  100% { transform: rotate(720deg); opacity: 0; }
+}
+@keyframes bootLogo { from { opacity: 0; transform: scale(.92); } }
+
+/* ---------- Setup and lock ---------- */
+.screen { display: grid; place-items: center; padding: 16px; }
+#setup { z-index: 790; }
+#lock { z-index: 800; }
+.dialog { width: min(380px, 100%); background: var(--paper); border: 1.5px solid var(--line); border-radius: 6px; box-shadow: 4px 4px 0 var(--shadow); overflow: hidden; position: relative; }
+.dialog-title, .titlebar.static { height: 30px; display: flex; align-items: center; padding: 0 10px; background: repeating-linear-gradient(0deg, var(--chrome) 0 2px, var(--chrome-d) 2px 3px); border-bottom: 1.5px solid var(--line); }
+.dialog-title span { background: var(--chrome); padding: 0 8px; font-weight: 700; font-size: 13px; }
+.dialog-body { padding: 18px; display: grid; gap: 14px; }
+.fieldrow { display: grid; gap: 4px; }
+.fieldrow label { font-weight: 700; font-size: 13px; }
+.who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.actions { display: flex; gap: 8px; }
+.lock-time { position: absolute; left: 5vw; bottom: 5vh; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.lock-time b { display: block; font-size: clamp(48px, 9vw, 96px); line-height: 1; font-weight: 700; }
+.lock-time span { font-size: 18px; }
+
+/* ---------- Menu bar ---------- */
+#wall { z-index: 0; }
+#menubar {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--bar-h); z-index: 60;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 4px;
+  background: var(--chrome); border-bottom: 1.5px solid var(--line); font-size: 13px;
+}
+.mb-btn { display: flex; align-items: center; gap: 8px; height: 22px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; }
+.mb-btn:hover, .mb-btn[aria-expanded="true"] { background: var(--ink); color: var(--paper); }
+#sysmenu .ic { font-size: 16px; }
+#active-title { font-weight: 700; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--good); border: 1.5px solid currentColor; }
+.dot.off { background: var(--bad); }
+
+/* ---------- Desktop ---------- */
+#desktop { position: fixed; top: var(--bar-h); left: 0; right: 0; bottom: var(--task-h); overflow: hidden; z-index: 1; }
+#icons { position: absolute; inset: 0; display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; gap: 6px; padding: 12px; }
+.dicon { width: 92px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 4px; border: 0; background: none; color: #fff; }
+.dicon .label { font-size: 13px; line-height: 1.15; padding: 1px 5px; border-radius: 3px; text-shadow: 0 1px 0 rgba(0,0,0,.7), 0 0 4px rgba(0,0,0,.6); max-width: 100%; }
+.dicon.sel .label { background: var(--accent); color: var(--on-accent); text-shadow: none; }
+#windows { position: absolute; inset: 0; pointer-events: none; }
+
+/* ---------- Taskbar ---------- */
+#taskbar { position: fixed; left: 0; right: 0; bottom: 0; height: var(--task-h); z-index: 60; display: flex; align-items: center; gap: 4px; padding: 0 8px; background: var(--chrome); border-top: 1.5px solid var(--line); overflow-x: auto; }
+.task-btn { position: relative; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px 0 6px; border: 1.5px solid transparent; border-radius: 5px; background: transparent; font-size: 13px; white-space: nowrap; }
+.task-btn:hover { background: var(--chrome-d); }
+.task-btn.focused { background: var(--paper); border-color: var(--line); }
+.task-btn.open::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: 1px; height: 3px; border-radius: 2px; background: var(--ink); }
+.task-btn.min::after { opacity: .35; }
+
+/* ---------- Popovers ---------- */
+.pop { position: fixed; z-index: 70; top: calc(var(--bar-h) + 4px); background: var(--paper); border: 1.5px solid var(--line); border-radius: 6px; box-shadow: 3px 3px 0 var(--shadow); animation: pop .12s ease-out; }
+#startmenu { left: 6px; width: min(330px, calc(100vw - 12px)); }
+#cc { right: 6px; width: min(290px, calc(100vw - 12px)); padding: 6px 0; }
+.pop-search { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1.5px solid var(--line); }
+.pop-search input { flex: 1; border: 0; background: transparent; color: var(--ink); font: inherit; outline: none; min-width: 0; }
+.pop-search:focus-within { box-shadow: inset 0 -3px 0 var(--accent); }
+.start-list { list-style: none; margin: 0; padding: 4px 0; max-height: min(50vh, 360px); overflow: auto; }
+.start-list .empty { padding: 12px; color: var(--ink-2); }
+.start-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 6px 10px; border: 0; background: none; text-align: left; }
+.start-item .meta { display: grid; }
+.start-item:hover, .start-item:focus-visible { background: var(--accent); color: var(--on-accent); outline: none; }
+.start-item:hover .sub, .start-item:focus-visible .sub { color: inherit; opacity: .85; }
+.pop-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-top: 1.5px solid var(--line); }
+.pop-foot .acts { display: flex; gap: 6px; }
+.cc-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; }
+.cc-row.col { flex-direction: column; align-items: stretch; gap: 6px; }
+.cc-row input[type=range] { width: 100%; accent-color: var(--accent); }
+@keyframes pop { from { opacity: 0; transform: translateY(-3px); } }
+
+/* ---------- Windows ---------- */
+.win { position: absolute; display: flex; flex-direction: column; min-width: 240px; min-height: 140px; background: var(--paper); border: 1.5px solid var(--line); border-radius: 6px; overflow: hidden; pointer-events: auto; transition: box-shadow .15s; }
+.win.active { box-shadow: 3px 3px 0 var(--shadow); }
+.win.max { border-radius: 0; border-width: 0 0 1.5px; box-shadow: none; }
+.win.is-min { display: none; }
+.titlebar { height: 30px; display: flex; align-items: center; justify-content: space-between; padding: 0 4px 0 6px; background: var(--chrome); border-bottom: 1.5px solid var(--line); touch-action: none; flex: none; }
+.win.active .titlebar { background: repeating-linear-gradient(0deg, var(--chrome) 0 2px, var(--chrome-d) 2px 3px); }
+.ttl { display: flex; align-items: center; gap: 8px; padding: 0 8px 0 4px; background: var(--chrome); font-weight: 700; font-size: 13px; white-space: nowrap; }
+.win:not(.active) .ttl { color: var(--ink-2); font-weight: 400; }
+.ctrls { display: flex; gap: 4px; padding-left: 6px; background: var(--chrome); }
+.wbtn { width: 20px; height: 20px; display: grid; place-items: center; padding: 0; border: 1.5px solid var(--line); border-radius: 4px; background: var(--chrome); font-size: 12px; }
+.wbtn:hover { background: var(--ink); color: var(--paper); }
+.wbtn.close:hover { background: var(--bad); border-color: var(--bad); color: #fff; }
+.win-body { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; background: var(--paper); }
+.grip { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; cursor: nwse-resize; touch-action: none; background: linear-gradient(135deg, transparent 0 50%, var(--line) 50% 56%, transparent 56% 70%, var(--line) 70% 76%, transparent 76%); }
+
+.toolbar { display: flex; align-items: center; gap: 6px; padding: 6px; background: var(--chrome); border-bottom: 1.5px solid var(--line); flex: none; }
+.toolbar .status { margin-left: auto; font-size: 12px; color: var(--ink-2); padding-right: 4px; }
+.tbtn { width: 28px; height: 28px; display: grid; place-items: center; padding: 0; border: 1.5px solid transparent; border-radius: 4px; background: transparent; font-size: 16px; flex: none; }
+.tbtn:hover:not(:disabled) { border-color: var(--line); background: var(--paper); }
+.tbtn:disabled { opacity: .35; cursor: default; }
+
+/* Browser */
+.viewport { position: relative; flex: 1; min-height: 0; }
+.frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #fff; }
+.browser-home { position: absolute; inset: 0; padding: 22px; overflow: auto; display: grid; gap: 14px; align-content: start; }
+.browser-home .quick { display: grid; gap: 6px; max-width: 360px; }
+.quick button { display: grid; text-align: left; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 5px; background: var(--paper); }
+.quick button:hover { background: var(--chrome); }
+.notice { padding: 5px 10px; font-size: 12px; color: var(--ink-2); background: var(--chrome); border-top: 1.5px solid var(--line); flex: none; }
+
+/* App store */
+.intro { padding: 12px 14px 0; color: var(--ink-2); }
+.list { flex: 1; overflow: auto; padding: 12px; display: grid; gap: 8px; align-content: start; }
+.row { display: flex; align-items: center; gap: 12px; padding: 10px; border: 1.5px solid var(--line); border-radius: 6px; }
+.row .meta { flex: 1; min-width: 0; display: grid; }
+.row .tag { font-size: 12px; color: var(--ink-2); padding: 0 6px; }
+
+/* Arcade */
+.stage { flex: 1; display: grid; place-items: center; padding: 12px; overflow: auto; }
+.snake { display: grid; gap: 8px; justify-items: center; }
+.hud { display: flex; justify-content: space-between; width: 100%; font-weight: 700; }
+.snake canvas { max-width: 100%; height: auto; border: 1.5px solid var(--line); touch-action: none; }
+.hint { font-size: 12px; color: var(--ink-2); }
+.ttt-wrap { display: grid; gap: 12px; justify-items: center; }
+.ttt-controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.ttt { display: grid; grid-template-columns: repeat(3, 76px); gap: 6px; }
+.cell { height: 76px; border: 1.5px solid var(--line); border-radius: 6px; background: var(--chrome); font-size: 36px; font-weight: 700; line-height: 1; }
+.cell:hover:not(:disabled) { background: var(--chrome-d); }
+.cell.o { color: var(--accent); }
+.cell.win { background: var(--hi); color: #1e1f1e; }
+.cell:disabled { cursor: default; }
+.ttt-status { font-weight: 700; min-height: 1.4em; }
+
+/* Notes */
+.notes { flex: 1; width: 100%; resize: none; border: 0; outline: none; padding: 4px 16px; font: inherit; font-size: 15px; line-height: 24px; color: var(--ink); background-color: var(--paper); background-image: repeating-linear-gradient(transparent 0 23px, var(--rule) 23px 24px); background-attachment: local; background-position: 0 3px; }
+
+/* Calculator */
+.calc { padding: 10px; display: grid; grid-template-rows: auto 1fr; gap: 10px; height: 100%; }
+.calc-screen { border: 1.5px solid var(--line); border-radius: 5px; padding: 8px 10px; text-align: right; min-height: 78px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
+.calc-expr { font-size: 12px; color: var(--ink-2); min-height: 1.4em; }
+.calc-res { font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; line-height: 1.1; }
+.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.key { border: 1.5px solid var(--line); border-radius: 5px; background: var(--paper); font-size: 18px; font-weight: 700; }
+.key:hover { background: var(--chrome); }
+.key:active { transform: translateY(1px); }
+.key.op { background: var(--chrome-d); }
+.key.eq { background: var(--accent); color: var(--on-accent); }
+.key.clr { background: var(--hi); color: #1e1f1e; }
+.key.wide { grid-column: span 2; }
+
+/* Settings */
+.pane { padding: 16px; display: grid; gap: 20px; overflow: auto; align-content: start; }
+.pane h3 { margin: 0 0 8px; font-size: 14px; }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 10px; }
+.swatch-btn { display: grid; gap: 6px; padding: 2px; border: 0; background: none; font-size: 12px; text-align: center; }
+.swatch { display: block; height: 52px; border: 1.5px solid var(--line); border-radius: 5px; }
+.swatch-btn[aria-pressed="true"] .swatch { outline: 3px solid var(--accent); outline-offset: 2px; }
+.swatch-btn[aria-pressed="true"] { font-weight: 700; }
+.tile { position: relative; display: grid; }
+.swatch.add { display: grid; place-items: center; border-style: dashed; background: var(--paper); font-size: 20px; }
+.swatch-x { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; display: grid; place-items: center; padding: 0; border: 1.5px solid var(--line); border-radius: 50%; background: var(--paper); font-size: 11px; }
+.swatch-x:hover { background: var(--bad); border-color: var(--bad); color: #fff; }
+.looks { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.look-btn { display: grid; gap: 6px; padding: 2px; border: 0; background: none; font-size: 12px; text-align: center; }
+.look { display: flex; height: 40px; border: 1.5px solid var(--line); border-radius: 5px; overflow: hidden; }
+.look i { flex: 1; }
+.look-btn[aria-pressed="true"] .look { outline: 3px solid var(--accent); outline-offset: 2px; }
+.look-btn[aria-pressed="true"] { font-weight: 700; }
+.accents { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.dotbtn { width: 28px; height: 28px; padding: 0; border: 1.5px solid var(--line); border-radius: 50%; }
+.dotbtn[aria-pressed="true"] { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.pane .row-actions { display: flex; gap: 8px; }
+.w-custom { background-color: #111; background-position: center; background-repeat: no-repeat; }
+.fit-fill { background-size: cover; }
+.fit-fit { background-size: contain; }
+.fit-tile { background-size: auto; background-repeat: repeat; }
+#lock::before, #setup::before { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, .22); }
+
+/* Terminal */
+.term { flex: 1; min-height: 0; background: #101312; color: #d7e0da; font-family: var(--mono); font-size: 13px; padding: 10px; overflow: auto; user-select: text; -webkit-user-select: text; }
+.term .out > div { white-space: pre-wrap; word-break: break-word; }
+.term .prompt { color: #e8b94a; margin-right: 8px; }
+.term .err { color: #ef8b7a; }
+.term .dim { color: #8e9b95; }
+.term .inline { display: flex; align-items: center; }
+.term input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: inherit; font: inherit; user-select: text; }
+
+/* ---------- Motion ---------- */
+.win.tween { transition: box-shadow .15s, left .24s cubic-bezier(.2,.8,.2,1), top .24s cubic-bezier(.2,.8,.2,1), width .24s cubic-bezier(.2,.8,.2,1), height .24s cubic-bezier(.2,.8,.2,1); }
+.ghost { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.screen { animation: fadeIn .25s ease-out; }
+.dialog { animation: dialogIn .24s cubic-bezier(.2,.8,.2,1); }
+.appicon { transition: transform .1s; }
+.dicon:active .appicon { transform: scale(.93); }
+.task-btn:active { transform: translateY(1px); }
+.task-btn::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: 1px; height: 3px; border-radius: 2px; background: var(--ink); transform: scaleX(0); transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .2s; }
+.task-btn.open::after { transform: scaleX(1); }
+.hud span { display: inline-block; }
+.cell.win { animation: winPulse .5s ease-out; }
+.theming *, .theming *::before { transition: background-color .3s, color .3s, border-color .3s, fill .3s, stroke .3s !important; }
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes dialogIn { from { opacity: 0; transform: scale(.97); } }
+@keyframes winPulse { 0% { transform: scale(1); } 35% { transform: scale(1.12); } 100% { transform: scale(1); } }
+#dim { position: fixed; inset: 0; z-index: 950; background: #000; opacity: 0; pointer-events: none; }
+
+@media (max-width: 720px) {
+  .task-btn .tl { display: none; }
+  .task-btn { padding: 0 6px; }
+  .mb-battery { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after, .theming *, .theming *::before { animation: none !important; transition: none !important; }
+  .spinner i:first-child { opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<!-- Icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-mark" viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><circle cx="17" cy="17" r="4"/></g></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8zM9 8V6a3 3 0 0 1 6 0v2"/></symbol>
+  <symbol id="i-pad" viewBox="0 0 24 24"><path d="M4 9h16a2 2 0 0 1 2 2v3a3 3 0 0 1-5.2 2L15 14H9l-1.8 2A3 3 0 0 1 2 14v-3a2 2 0 0 1 2-2zM7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r=".6" fill="currentColor"/><circle cx="18" cy="13.5" r=".6" fill="currentColor"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h5"/></symbol>
+  <symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><rect x="8" y="6" width="8" height="3"/><g fill="currentColor" stroke="none"><circle cx="9" cy="13" r="1"/><circle cx="12" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><circle cx="9" cy="17" r="1"/><circle cx="12" cy="17" r="1"/><circle cx="15" cy="17" r="1"/></g></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 17h1M11 17h9"/><circle cx="16" cy="7" r="2.5"/><circle cx="8" cy="17" r="2.5"/></symbol>
+  <symbol id="i-term" viewBox="0 0 24 24"><path d="M4 6l6 6-6 6M12 18h8"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-reload" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5H5V6h5"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></symbol>
+  <symbol id="i-min" viewBox="0 0 24 24"><path d="M5 18h14"/></symbol>
+  <symbol id="i-max" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14"/></symbol>
+  <symbol id="i-restore" viewBox="0 0 24 24"><path d="M9 9V5h10v10h-4M5 9h10v10H5z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+</svg>
+
+<!-- Boot -->
+<div id="boot" aria-label="Starting QuantumOS" role="status">
+  <svg class="ic boot-logo" aria-hidden="true"><use href="#i-mark"/></svg>
+  <div id="boot-bar" aria-hidden="true"><i id="boot-fill"></i></div>
+</div>
+
+<!-- First-run setup -->
+<div id="setup" class="screen wall w-teal" hidden>
+  <form id="setup-form" class="dialog" autocomplete="off">
+    <div class="dialog-title"><span>Set up this computer</span></div>
+    <div class="dialog-body">
+      <p>Choose a name and a password. They stay in this browser and are never sent anywhere.</p>
+      <div class="fieldrow"><label for="setup-name">Your name</label><input class="field" id="setup-name" type="text" required maxlength="32" autocomplete="username"></div>
+      <div class="fieldrow"><label for="setup-pw">Password</label><input class="field" id="setup-pw" type="password" required autocomplete="new-password"></div>
+      <div class="fieldrow"><label for="setup-pw2">Repeat password</label><input class="field" id="setup-pw2" type="password" required autocomplete="new-password"></div>
+      <p class="err" id="setup-err" role="alert"></p>
+      <div class="actions"><button class="btn primary" type="submit">Create account</button></div>
+    </div>
+  </form>
+</div>
+
+<!-- Lock -->
+<div id="lock" class="screen wall w-teal" hidden>
+  <div class="lock-time"><b id="lock-clock"></b><span id="lock-date"></span></div>
+  <form id="lock-form" class="dialog" autocomplete="off">
+    <div class="dialog-title"><span>Sign in</span></div>
+    <div class="dialog-body">
+      <div class="who"><span class="avatar big" id="lock-avatar">Q</span><div><b id="lock-name"></b><div class="sub">Enter your password to unlock.</div></div></div>
+      <div class="fieldrow"><label for="lock-pw">Password</label><input class="field" id="lock-pw" type="password" autocomplete="current-password"></div>
+      <p class="err" id="lock-err" role="alert"></p>
+      <div class="actions"><button class="btn primary" type="submit">Unlock</button></div>
+      <button type="button" class="link" id="lock-reset">Forgot your password? Erase this computer.</button>
+    </div>
+  </form>
+</div>
+
+<!-- Welcome -->
+<div id="welcome" class="screen wall w-teal" hidden>
+  <div class="welcome-card" role="status">
+    <span class="avatar" id="welcome-avatar">Q</span>
+    <b id="welcome-name"></b>
+    <div class="spinner" aria-hidden="true"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i></div>
+    <p>Welcome</p>
+  </div>
+</div>
+
+<!-- Desktop -->
+<div id="os" hidden>
+  <div id="wall" class="wall w-teal"></div>
+
+  <header id="menubar">
+    <button id="sysmenu" class="mb-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="startmenu" aria-label="Apps menu">
+      <svg class="ic" aria-hidden="true"><use href="#i-mark"/></svg><span id="active-title">QuantumOS</span>
+    </button>
+    <button id="status-btn" class="mb-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="cc" aria-label="Quick settings">
+      <span class="dot" id="net-dot"></span><span id="battery" class="mb-battery" hidden></span><span id="clock"></span>
+    </button>
+  </header>
+
+  <main id="desktop">
+    <div id="icons"></div>
+    <div id="windows"></div>
+  </main>
+
+  <nav id="taskbar" aria-label="Apps"></nav>
+
+  <div id="startmenu" class="pop" hidden>
+    <div class="pop-search">
+      <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+      <input id="start-search" type="text" placeholder="Search apps" autocomplete="off" aria-label="Search apps">
+    </div>
+    <ul id="start-list" class="start-list"></ul>
+    <div class="pop-foot">
+      <div class="who"><span class="avatar" id="menu-avatar">Q</span><b id="menu-name"></b></div>
+      <div class="acts">
+        <button class="btn" id="btn-lock" type="button">Lock</button>
+        <button class="btn" id="btn-restart" type="button">Restart</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="cc" class="pop" hidden>
+    <div class="cc-row"><span>Appearance</span><span id="cc-theme"></span></div>
+    <label class="cc-row col"><span>Brightness</span><input id="cc-bright" type="range" min="40" max="100" step="1"></label>
+    <div class="cc-row"><span>Network</span><span id="cc-net"></span></div>
+    <div class="cc-row" id="cc-batt-row" hidden><span>Battery</span><span id="cc-batt"></span></div>
+  </div>
+</div>
+
+<div id="dim"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= Helpers ================= */
+const OS_NAME = 'QuantumOS';
+const NS = 'http://www.w3.org/2000/svg';
+const root = document.documentElement;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const clamp = (n, lo, hi) => Math.min(Math.max(n, lo), hi);
+const startedAt = Date.now();
+
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat(Infinity)) {
+    if (kid == null || kid === false) continue;
+    el.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+
+function icon(name) {
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'ic');
+  svg.setAttribute('aria-hidden', 'true');
+  const use = document.createElementNS(NS, 'use');
+  use.setAttribute('href', '#i-' + name);
+  svg.append(use);
+  return svg;
+}
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
+  del(k) { try { localStorage.removeItem(k); } catch { /* storage unavailable */ } }
+};
+
+const cssVar = (n) => getComputedStyle(root).getPropertyValue(n).trim();
+
+function seg(options, get, set, label) {
+  const el = h('div', { class: 'seg', role: 'group', 'aria-label': label || null });
+  const btns = options.map(([v, text]) => h('button', { type: 'button', 'aria-pressed': 'false', onclick: () => set(v) }, text));
+  el.append(...btns);
+  const refresh = () => btns.forEach((b, i) => b.setAttribute('aria-pressed', String(options[i][0] === get())));
+  refresh();
+  return { el, refresh };
+}
+
+/* ================= Preferences ================= */
+const WALLS = [
+  { id: 'teal', name: 'Teal' },
+  { id: 'graph', name: 'Graph' },
+  { id: 'olive', name: 'Olive' },
+  { id: 'paper', name: 'Paper' }
+];
+const OPTIONAL = ['games', 'notepad', 'calculator', 'terminal'];
+
+const THEMES = {
+  classic: { name: 'Classic',
+    light: { '--desk': '#4d7c7a', '--chrome': '#d9dcd6', '--chrome-d': '#c3c7bf', '--paper': '#fbfbf8', '--rule': '#b4b8b0', '--accent': '#2f54d6' },
+    dark:  { '--desk': '#1d3231', '--chrome': '#2a2e2c', '--chrome-d': '#353a37', '--paper': '#191b1a', '--rule': '#454a46', '--accent': '#8aa4ff' } },
+  graphite: { name: 'Graphite',
+    light: { '--desk': '#5a5f66', '--chrome': '#dcdcdc', '--chrome-d': '#c6c6c6', '--paper': '#fafafa', '--rule': '#bdbdbd', '--accent': '#3b4252' },
+    dark:  { '--desk': '#262a30', '--chrome': '#2d2d2d', '--chrome-d': '#3a3a3a', '--paper': '#1c1c1c', '--rule': '#4a4a4a', '--accent': '#9db4d6' } },
+  sage: { name: 'Sage',
+    light: { '--desk': '#6f8560', '--chrome': '#d6dccd', '--chrome-d': '#c1c9b7', '--paper': '#fafbf6', '--rule': '#b8c0ac', '--accent': '#3f6b35' },
+    dark:  { '--desk': '#27341f', '--chrome': '#2b3027', '--chrome-d': '#363d31', '--paper': '#191c17', '--rule': '#454d3f', '--accent': '#98c98a' } },
+  ocean: { name: 'Ocean',
+    light: { '--desk': '#2e5379', '--chrome': '#d3dde8', '--chrome-d': '#bcc9d8', '--paper': '#fafcfe', '--rule': '#aebccd', '--accent': '#1f5fbf' },
+    dark:  { '--desk': '#14283d', '--chrome': '#262d35', '--chrome-d': '#313a44', '--paper': '#171b20', '--rule': '#414b57', '--accent': '#8bb4f5' } },
+  plum: { name: 'Plum',
+    light: { '--desk': '#684a74', '--chrome': '#ddd5df', '--chrome-d': '#cbc0ce', '--paper': '#fcfafc', '--rule': '#bfb2c3', '--accent': '#8a3fa5' },
+    dark:  { '--desk': '#2e1f36', '--chrome': '#2e2a31', '--chrome-d': '#39343d', '--paper': '#1b181d', '--rule': '#4a4350', '--accent': '#c99be0' } }
+};
+const ACCENTS = {
+  blue:   { name: 'Blue',   c: ['#2f54d6', '#8aa4ff'] },
+  teal:   { name: 'Teal',   c: ['#0e7c86', '#6fd0d8'] },
+  green:  { name: 'Green',  c: ['#2f7d4f', '#7fd09a'] },
+  orange: { name: 'Orange', c: ['#b45309', '#f0a35e'] },
+  red:    { name: 'Red',    c: ['#c2412d', '#f08a78'] },
+  purple: { name: 'Purple', c: ['#7a3fc4', '#c4a1f2'] }
+};
+const THEME_VARS = ['--desk', '--chrome', '--chrome-d', '--paper', '--rule', '--accent', '--on-accent'];
+
+// Images you add are shrunk and kept in this browser (localStorage).
+let customWalls = store.get('quantum_walls', []);
+customWalls = (Array.isArray(customWalls) ? customWalls : []).filter((w) => w && w.id && typeof w.src === 'string');
+function saveWalls() {
+  try { localStorage.setItem('quantum_walls', JSON.stringify(customWalls)); return true; } catch { return false; }
+}
+const wallSrc = (id) => {
+  if (typeof id !== 'string' || !id.startsWith('custom:')) return null;
+  const w = customWalls.find((x) => 'custom:' + x.id === id);
+  return w ? w.src : null;
+};
+const cssUrl = (src) => `url("${src.replace(/"/g, '%22')}")`;
+
+const prefs = Object.assign(
+  { theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light', look: 'classic', accent: 'auto',
+    wall: 'teal', wallFit: 'fill', brightness: 100, installed: [...OPTIONAL] },
+  store.get('quantum_prefs', {})
+);
+prefs.installed = (Array.isArray(prefs.installed) ? prefs.installed : OPTIONAL).filter((k) => OPTIONAL.includes(k));
+if (!THEMES[prefs.look]) prefs.look = 'classic';
+if (prefs.accent !== 'auto' && !ACCENTS[prefs.accent]) prefs.accent = 'auto';
+if (!['fill', 'fit', 'tile'].includes(prefs.wallFit)) prefs.wallFit = 'fill';
+if (!WALLS.some((w) => w.id === prefs.wall) && !wallSrc(prefs.wall)) prefs.wall = 'teal';
+const savePrefs = () => store.set('quantum_prefs', prefs);
+
+const bus = new EventTarget();
+const onPrefs = (fn) => { bus.addEventListener('prefs', fn); return () => bus.removeEventListener('prefs', fn); };
+const emitPrefs = () => bus.dispatchEvent(new Event('prefs'));
+
+function reduced() { return matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+function applyTheme() {
+  root.dataset.theme = prefs.theme;
+  THEME_VARS.forEach((k) => root.style.removeProperty(k));
+  Object.entries(THEMES[prefs.look][prefs.theme]).forEach(([k, v]) => root.style.setProperty(k, v));
+  const ac = ACCENTS[prefs.accent];
+  if (ac) root.style.setProperty('--accent', prefs.theme === 'dark' ? ac.c[1] : ac.c[0]);
+  root.style.setProperty('--on-accent', prefs.theme === 'dark' ? '#101318' : '#ffffff');
+}
+function applyWall() {
+  const src = wallSrc(prefs.wall);
+  $$('.wall').forEach((el) => {
+    WALLS.forEach((w) => el.classList.remove('w-' + w.id));
+    el.classList.remove('w-custom', 'fit-fill', 'fit-fit', 'fit-tile');
+    if (src) { el.classList.add('w-custom', 'fit-' + prefs.wallFit); el.style.backgroundImage = cssUrl(src); }
+    else { el.style.backgroundImage = ''; el.classList.add('w-' + prefs.wall); }
+  });
+}
+function applyBrightness() { $('#dim').style.opacity = String((100 - prefs.brightness) / 100); }
+
+function restyle() {
+  root.classList.add('theming');
+  clearTimeout(restyle.timer);
+  restyle.timer = setTimeout(() => root.classList.remove('theming'), 350);
+  savePrefs(); applyTheme(); emitPrefs();
+}
+function setTheme(t) { if (t !== prefs.theme) { prefs.theme = t; restyle(); } }
+function setLook(id) { if (THEMES[id] && id !== prefs.look) { prefs.look = id; restyle(); } }
+function setAccent(id) { if ((id === 'auto' || ACCENTS[id]) && id !== prefs.accent) { prefs.accent = id; restyle(); } }
+
+function setWall(w) {
+  if (w === prefs.wall) return;
+  if (!WALLS.some((x) => x.id === w) && !wallSrc(w)) return;
+  if (!reduced()) {
+    // Cross-fade from a copy of the old wallpaper.
+    const bg = getComputedStyle($('#wall'));
+    const ghost = h('div', { class: 'ghost' });
+    Object.assign(ghost.style, { backgroundColor: bg.backgroundColor, backgroundImage: bg.backgroundImage, backgroundSize: bg.backgroundSize, backgroundRepeat: bg.backgroundRepeat, backgroundPosition: bg.backgroundPosition });
+    $('#wall').after(ghost);
+    ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, easing: 'ease-out' }).onfinish = () => ghost.remove();
+  }
+  prefs.wall = w; savePrefs(); applyWall(); emitPrefs();
+}
+function setWallFit(f) { prefs.wallFit = f; savePrefs(); applyWall(); emitPrefs(); }
+
+function readImage(file) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) { reject(new Error('Choose an image file.')); return; }
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 1920 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.naturalWidth * k));
+      c.height = Math.max(1, Math.round(img.naturalHeight * k));
+      const g = c.getContext('2d');
+      g.fillStyle = '#fff';
+      g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      try { resolve(c.toDataURL('image/jpeg', 0.82)); } catch { reject(new Error('Couldn’t read that image.')); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Couldn’t open that image.')); };
+    img.src = url;
+  });
+}
+// Returns an error message, or null when the image was added and applied.
+function addCustom(src, name) {
+  if (customWalls.length >= 6) return 'You can keep up to 6 images. Remove one first.';
+  const w = { id: 'w' + Date.now().toString(36) + Math.floor(Math.random() * 1000), name: name || 'Image', src };
+  customWalls.push(w);
+  if (!saveWalls()) { customWalls.pop(); return 'Not enough browser storage for that image. Remove one, or pick a smaller image.'; }
+  setWall('custom:' + w.id);
+  return null;
+}
+function removeCustom(id) {
+  customWalls = customWalls.filter((w) => w.id !== id);
+  saveWalls();
+  if (prefs.wall === 'custom:' + id) { prefs.wall = 'teal'; savePrefs(); applyWall(); }
+  emitPrefs();
+}
+
+/* ================= Account ================= */
+let user = null;
+
+async function hashPw(pw, salt) {
+  const data = new TextEncoder().encode(salt + ':' + pw);
+  if (window.crypto && crypto.subtle) {
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  let x = 5381;
+  for (const b of data) x = ((x << 5) + x + b) >>> 0;
+  return 'weak-' + x.toString(16);
+}
+function makeSalt() {
+  const a = new Uint8Array(8);
+  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a);
+  else a.forEach((_, i) => { a[i] = Math.floor(Math.random() * 256); });
+  return [...a].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+async function makeUser(username, pw) {
+  const salt = makeSalt();
+  return { username, salt, hash: await hashPw(pw, salt) };
+}
+async function verifyPw(pw) {
+  if (!user) return false;
+  if (user.hash) return (await hashPw(pw, user.salt)) === user.hash;
+  // Accounts made by the old version stored the password as plain text. Check it once, then upgrade.
+  if (user.password !== undefined && pw === user.password) {
+    user = await makeUser(user.username, pw);
+    store.set('quantum_user', user);
+    return true;
+  }
+  return false;
+}
+function applyUser() {
+  const letter = (user.username.trim().charAt(0) || 'Q').toUpperCase();
+  $('#lock-avatar').textContent = letter;
+  $('#menu-avatar').textContent = letter;
+  $('#lock-name').textContent = user.username;
+  $('#menu-name').textContent = user.username;
+}
+function eraseComputer() {
+  if (!confirm('Erase this computer? This deletes your account, notes and settings from this browser.')) return;
+  ['quantum_user', 'quantum_prefs', 'quantum_notes', 'quantum_snake_best', 'quantum_walls'].forEach((k) => store.del(k));
+  location.reload();
+}
+
+/* ================= Window manager ================= */
+const wins = new Map();
+let zTop = 10;
+let focusedKey = null;
+const layer = $('#windows');
+
+const installedKeys = () => Object.keys(APPS).filter((k) => APPS[k].core || prefs.installed.includes(k));
+
+function appIcon(key, size) {
+  const a = APPS[key];
+  const el = h('span', { class: 'appicon c-' + a.color }, icon(a.icon));
+  el.style.setProperty('--s', size + 'px');
+  return el;
+}
+
+// Windows fly to and from their taskbar button.
+function flyAnim(rec, opening) {
+  if (reduced()) return null;
+  const btn = $(`.task-btn[data-key="${rec.key}"]`);
+  if (!btn) return null;
+  const t = btn.getBoundingClientRect();
+  const r = rec.el.getBoundingClientRect();
+  if (!r.width || !r.height) return null;
+  const dx = t.left + t.width / 2 - (r.left + r.width / 2);
+  const dy = t.top + t.height / 2 - (r.top + r.height / 2);
+  const small = `translate(${dx}px, ${dy}px) scale(${Math.max(.05, t.width / r.width)}, ${Math.max(.05, t.height / r.height)})`;
+  const frames = [{ transform: small, opacity: 0 }, { transform: 'none', opacity: 1 }];
+  if (!opening) frames.reverse();
+  return rec.el.animate(frames, {
+    duration: opening ? 280 : 200,
+    easing: opening ? 'cubic-bezier(.2,.8,.2,1)' : 'cubic-bezier(.5,0,.8,.4)',
+    fill: opening ? 'none' : 'forwards'
+  });
+}
+
+function openApp(key) {
+  const app = APPS[key];
+  if (!app || !installedKeys().includes(key)) return;
+  if (wins.has(key)) { focusWin(key); return; }
+
+  const area = layer.getBoundingClientRect();
+  const w = Math.min(app.w, area.width - 16);
+  const hh = Math.min(app.h, area.height - 16);
+  const n = wins.size % 6;
+  const left = clamp(128 + n * 30, 0, Math.max(0, area.width - w));
+  const top = clamp(24 + n * 30, 0, Math.max(0, area.height - hh));
+
+  const rec = { key, max: false, min: false, prev: null, api: {} };
+  const el = h('section', { class: 'win', role: 'dialog', 'aria-label': app.name });
+  el.style.cssText = `left:${left}px;top:${top}px;width:${w}px;height:${hh}px`;
+  rec.el = el;
+
+  const btnMin = h('button', { class: 'wbtn', type: 'button', title: 'Minimize', 'aria-label': 'Minimize', onclick: () => minimizeWin(key) }, icon('min'));
+  rec.maxBtn = app.fixed ? null : h('button', { class: 'wbtn', type: 'button', title: 'Maximize', 'aria-label': 'Maximize', onclick: () => toggleMax(key) }, icon('max'));
+  const btnClose = h('button', { class: 'wbtn close', type: 'button', title: 'Close', 'aria-label': 'Close', onclick: () => closeWin(key) }, icon('x'));
+  const tb = h('div', { class: 'titlebar' },
+    h('span', { class: 'ttl' }, appIcon(key, 18), app.name),
+    h('span', { class: 'ctrls' }, btnMin, rec.maxBtn, btnClose));
+  tb.addEventListener('pointerdown', (e) => startDrag(e, rec));
+  tb.addEventListener('dblclick', (e) => { if (!app.fixed && !e.target.closest('button')) toggleMax(key); });
+
+  const body = h('div', { class: 'win-body' });
+  el.append(tb, body);
+  if (!app.fixed) {
+    const grip = h('div', { class: 'grip', 'aria-hidden': 'true' });
+    grip.addEventListener('pointerdown', (e) => startResize(e, rec, app));
+    el.append(grip);
+  }
+  el.addEventListener('pointerdown', () => { if (focusedKey !== key || rec.min) focusWin(key); }, true);
+
+  wins.set(key, rec);
+  layer.append(el);
+  rec.api = app.build(body, { close: () => closeWin(key) }) || {};
+  if (area.width < 700 && !app.fixed) toggleMax(key, true);
+  focusWin(key);
+  rec.anim = flyAnim(rec, true);
+}
+
+function focusWin(key) {
+  const rec = wins.get(key);
+  if (!rec) return;
+  if (focusedKey === key && !rec.min) return;
+  const prev = wins.get(focusedKey);
+  if (prev && prev !== rec) { prev.el.classList.remove('active'); prev.api.blur?.(); }
+  const wasMin = rec.min;
+  rec.anim?.cancel();
+  rec.anim = null;
+  rec.min = false;
+  rec.el.classList.remove('is-min');
+  if (wasMin) rec.anim = flyAnim(rec, true);
+  zTop++;
+  rec.el.style.zIndex = zTop;
+  rec.el.classList.add('active');
+  focusedKey = key;
+  $('#active-title').textContent = APPS[key].name;
+  if (!reduced()) $('#active-title').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160 });
+  updateTaskbar();
+  rec.api.focus?.();
+}
+
+function focusTopmost() {
+  let top = null;
+  for (const r of wins.values()) {
+    if (!r.min && (!top || +r.el.style.zIndex > +top.el.style.zIndex)) top = r;
+  }
+  if (top) focusWin(top.key);
+  else { focusedKey = null; $('#active-title').textContent = OS_NAME; updateTaskbar(); }
+}
+
+function minimizeWin(key) {
+  const rec = wins.get(key);
+  if (!rec) return;
+  rec.min = true;
+  rec.el.classList.remove('active');
+  const a = flyAnim(rec, false);
+  if (a) {
+    rec.anim = a;
+    a.onfinish = () => {
+      if (rec.min && rec.anim === a) { rec.el.classList.add('is-min'); a.cancel(); rec.anim = null; }
+    };
+  } else rec.el.classList.add('is-min');
+  rec.api.blur?.();
+  if (focusedKey === key) { focusedKey = null; focusTopmost(); } else updateTaskbar();
+}
+
+function closeWin(key) {
+  const rec = wins.get(key);
+  if (!rec) return;
+  rec.api.destroy?.();
+  wins.delete(key);
+  rec.el.style.pointerEvents = 'none';
+  rec.el.classList.remove('active');
+  rec.anim?.cancel();
+  const gone = reduced() ? null : rec.el.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.96)', opacity: 0 }], { duration: 130, easing: 'ease-in', fill: 'forwards' });
+  if (gone) gone.onfinish = () => rec.el.remove(); else rec.el.remove();
+  if (focusedKey === key) { focusedKey = null; focusTopmost(); } else updateTaskbar();
+}
+
+function toggleMax(key, instant) {
+  const rec = wins.get(key);
+  if (!rec || !rec.maxBtn) return;
+  const el = rec.el;
+  if (!instant && !reduced()) {
+    el.classList.add('tween');
+    clearTimeout(rec.tweenTimer);
+    rec.tweenTimer = setTimeout(() => el.classList.remove('tween'), 280);
+  }
+  if (!rec.max) {
+    rec.prev = { left: el.style.left, top: el.style.top, width: el.style.width, height: el.style.height };
+    Object.assign(el.style, { left: '0px', top: '0px', width: '100%', height: '100%' });
+    el.classList.add('max');
+  } else {
+    Object.assign(el.style, rec.prev);
+    el.classList.remove('max');
+  }
+  rec.max = !rec.max;
+  rec.maxBtn.replaceChildren(icon(rec.max ? 'restore' : 'max'));
+  const label = rec.max ? 'Restore' : 'Maximize';
+  rec.maxBtn.title = label;
+  rec.maxBtn.setAttribute('aria-label', label);
+}
+
+function startDrag(e, rec) {
+  if (e.button !== 0 || e.target.closest('button')) return;
+  focusWin(rec.key);
+  if (rec.max) return;
+  const tb = e.currentTarget;
+  const el = rec.el;
+  const sx = e.clientX, sy = e.clientY, sl = el.offsetLeft, st = el.offsetTop;
+  tb.setPointerCapture(e.pointerId);
+  const move = (ev) => {
+    const a = layer.getBoundingClientRect();
+    el.style.left = clamp(sl + ev.clientX - sx, 90 - el.offsetWidth, a.width - 90) + 'px';
+    el.style.top = clamp(st + ev.clientY - sy, 0, a.height - 30) + 'px';
+  };
+  const up = () => {
+    tb.removeEventListener('pointermove', move);
+    tb.removeEventListener('pointerup', up);
+    tb.removeEventListener('pointercancel', up);
+  };
+  tb.addEventListener('pointermove', move);
+  tb.addEventListener('pointerup', up);
+  tb.addEventListener('pointercancel', up);
+}
+
+function startResize(e, rec, app) {
+  if (e.button !== 0 || rec.max) return;
+  e.preventDefault();
+  const grip = e.currentTarget;
+  const el = rec.el;
+  const sx = e.clientX, sy = e.clientY, sw = el.offsetWidth, sh = el.offsetHeight;
+  const [minW, minH] = app.min || [300, 200];
+  grip.setPointerCapture(e.pointerId);
+  const move = (ev) => {
+    const a = layer.getBoundingClientRect();
+    el.style.width = clamp(sw + ev.clientX - sx, minW, Math.max(minW, a.width - el.offsetLeft)) + 'px';
+    el.style.height = clamp(sh + ev.clientY - sy, minH, Math.max(minH, a.height - el.offsetTop)) + 'px';
+  };
+  const up = () => {
+    grip.removeEventListener('pointermove', move);
+    grip.removeEventListener('pointerup', up);
+    grip.removeEventListener('pointercancel', up);
+  };
+  grip.addEventListener('pointermove', move);
+  grip.addEventListener('pointerup', up);
+  grip.addEventListener('pointercancel', up);
+}
+
+window.addEventListener('resize', () => {
+  const a = layer.getBoundingClientRect();
+  for (const rec of wins.values()) {
+    if (rec.max) continue;
+    const el = rec.el;
+    el.style.width = Math.min(el.offsetWidth, a.width) + 'px';
+    el.style.height = Math.min(el.offsetHeight, a.height) + 'px';
+    el.style.left = clamp(el.offsetLeft, 90 - el.offsetWidth, a.width - 90) + 'px';
+    el.style.top = clamp(el.offsetTop, 0, Math.max(0, a.height - 30)) + 'px';
+  }
+});
+
+/* ================= Shell: desktop, taskbar, menus ================= */
+function renderIcons() {
+  const box = $('#icons');
+  box.textContent = '';
+  installedKeys().forEach((key) => {
+    const btn = h('button', { class: 'dicon', type: 'button', 'data-key': key },
+      appIcon(key, 48), h('span', { class: 'label' }, APPS[key].name));
+    btn.addEventListener('click', (e) => {
+      if (e.detail === 0 || e.pointerType === 'touch') { openApp(key); return; }
+      $$('.dicon').forEach((d) => d.classList.remove('sel'));
+      btn.classList.add('sel');
+    });
+    btn.addEventListener('dblclick', () => openApp(key));
+    box.append(btn);
+  });
+}
+$('#desktop').addEventListener('dragover', (e) => {
+  if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault();
+});
+$('#desktop').addEventListener('drop', async (e) => {
+  const file = [...(e.dataTransfer?.files || [])].find((f) => f.type.startsWith('image/'));
+  if (!file) return;
+  e.preventDefault();
+  try { const err = addCustom(await readImage(file), file.name); if (err) alert(err); }
+  catch (err) { alert(err.message); }
+});
+$('#desktop').addEventListener('pointerdown', (e) => {
+  if (!e.target.closest('.dicon')) $$('.dicon').forEach((d) => d.classList.remove('sel'));
+});
+
+function renderTaskbar() {
+  const bar = $('#taskbar');
+  bar.textContent = '';
+  installedKeys().forEach((key) => {
+    bar.append(h('button', { class: 'task-btn', type: 'button', 'data-key': key, onclick: () => taskClick(key) },
+      appIcon(key, 24), h('span', { class: 'tl' }, APPS[key].name)));
+  });
+  updateTaskbar();
+}
+function taskClick(key) {
+  const rec = wins.get(key);
+  if (!rec) openApp(key);
+  else if (rec.min) focusWin(key);
+  else if (focusedKey === key) minimizeWin(key);
+  else focusWin(key);
+}
+function updateTaskbar() {
+  $$('.task-btn').forEach((b) => {
+    const rec = wins.get(b.dataset.key);
+    b.classList.toggle('open', !!rec);
+    b.classList.toggle('min', !!rec && rec.min);
+    b.classList.toggle('focused', focusedKey === b.dataset.key);
+    b.setAttribute('aria-pressed', String(focusedKey === b.dataset.key));
+  });
+}
+
+function renderStartList(q = '') {
+  const ul = $('#start-list');
+  ul.textContent = '';
+  const needle = q.trim().toLowerCase();
+  const keys = installedKeys().filter((k) => !needle || APPS[k].name.toLowerCase().includes(needle) || APPS[k].desc.toLowerCase().includes(needle));
+  keys.forEach((k) => {
+    ul.append(h('li', null, h('button', { class: 'start-item', type: 'button', onclick: () => { openApp(k); closePopovers(); } },
+      appIcon(k, 32),
+      h('span', { class: 'meta' }, h('b', null, APPS[k].name), h('span', { class: 'sub' }, APPS[k].desc)))));
+  });
+  if (!keys.length) ul.append(h('li', { class: 'empty' }, `Nothing matches “${q.trim()}”. Install more apps from the App Store.`));
+}
+
+function renderShell() {
+  renderIcons();
+  renderTaskbar();
+  renderStartList($('#start-search').value);
+}
+
+const pops = {
+  start: { el: $('#startmenu'), btn: $('#sysmenu') },
+  cc: { el: $('#cc'), btn: $('#status-btn') }
+};
+function closePopovers() {
+  for (const p of Object.values(pops)) { p.el.hidden = true; p.btn.setAttribute('aria-expanded', 'false'); }
+}
+function togglePop(name) {
+  const p = pops[name];
+  const wasClosed = p.el.hidden;
+  closePopovers();
+  if (!wasClosed) return;
+  p.el.hidden = false;
+  p.btn.setAttribute('aria-expanded', 'true');
+  if (name === 'start') { $('#start-search').value = ''; renderStartList(''); $('#start-search').focus(); }
+}
+$('#sysmenu').addEventListener('click', () => togglePop('start'));
+$('#status-btn').addEventListener('click', () => togglePop('cc'));
+document.addEventListener('pointerdown', (e) => {
+  for (const p of Object.values(pops)) {
+    if (!p.el.hidden && !p.el.contains(e.target) && !p.btn.contains(e.target)) closePopovers();
+  }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePopovers(); });
+$('#start-search').addEventListener('input', (e) => renderStartList(e.target.value));
+$('#start-search').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('.start-item', $('#start-list'))?.click(); });
+$('#btn-lock').addEventListener('click', () => lockSystem());
+$('#btn-restart').addEventListener('click', () => location.reload());
+
+// Quick settings
+const ccTheme = seg([['light', 'Light'], ['dark', 'Dark']], () => prefs.theme, setTheme, 'Appearance');
+$('#cc-theme').append(ccTheme.el);
+onPrefs(() => ccTheme.refresh());
+const bright = $('#cc-bright');
+bright.value = prefs.brightness;
+bright.addEventListener('input', () => { prefs.brightness = +bright.value; applyBrightness(); });
+bright.addEventListener('change', savePrefs);
+
+function updateNet() {
+  const on = navigator.onLine;
+  $('#net-dot').classList.toggle('off', !on);
+  $('#cc-net').textContent = on ? 'Online' : 'Offline';
+}
+window.addEventListener('online', updateNet);
+window.addEventListener('offline', updateNet);
+
+if (navigator.getBattery) {
+  navigator.getBattery().then((b) => {
+    const upd = () => {
+      const t = Math.round(b.level * 100) + '%' + (b.charging ? ' charging' : '');
+      $('#battery').textContent = Math.round(b.level * 100) + '%';
+      $('#battery').title = 'Battery ' + t;
+      $('#battery').hidden = false;
+      $('#cc-batt').textContent = t;
+      $('#cc-batt-row').hidden = false;
+    };
+    upd();
+    b.addEventListener('levelchange', upd);
+    b.addEventListener('chargingchange', upd);
+  }).catch(() => {});
+}
+
+function tickClock() {
+  const d = new Date();
+  const t = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  $('#clock').textContent = d.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' }) + '  ' + t;
+  $('#lock-clock').textContent = t;
+  $('#lock-date').textContent = d.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+/* ================= Lock, setup, boot ================= */
+function showLock() {
+  $('#os').inert = true;
+  $('#lock').inert = false;
+  $('#lock-pw').value = '';
+  $('#lock-err').textContent = '';
+  $('#lock').hidden = false;
+  setTimeout(() => $('#lock-pw').focus(), 50);
+}
+function lockSystem() {
+  closePopovers();
+  showLock();
+}
+let welcomed = false;
+function showWelcome() {
+  const w = $('#welcome');
+  $('#welcome-avatar').textContent = $('#menu-avatar').textContent;
+  $('#welcome-name').textContent = user.username;
+  $('#lock').inert = true;
+  $('#setup').inert = true;
+  w.hidden = false;
+  const quick = reduced();
+  // Hide the sign-in screen once the welcome screen has faded in over it.
+  setTimeout(() => { $('#lock').hidden = true; $('#setup').hidden = true; }, quick ? 0 : 280);
+  setTimeout(() => {
+    $('#os').inert = false;
+    if (quick) { w.hidden = true; return; }
+    w.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 550, easing: 'ease-in', fill: 'forwards' })
+      .onfinish = () => { w.hidden = true; w.getAnimations().forEach((x) => x.cancel()); };
+  }, quick ? 500 : 2200);
+}
+function unlock() {
+  if (!welcomed) { welcomed = true; showWelcome(); return; }
+  $('#os').inert = false;
+  const leaving = [$('#lock'), $('#setup')].filter((el) => !el.hidden);
+  if (reduced()) { leaving.forEach((el) => { el.hidden = true; }); return; }
+  leaving.forEach((el) => {
+    el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-16px)' }], { duration: 260, easing: 'ease-in', fill: 'forwards' })
+      .onfinish = () => { el.hidden = true; el.getAnimations().forEach((x) => x.cancel()); };
+  });
+}
+
+$('#lock-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (await verifyPw($('#lock-pw').value)) unlock();
+  else {
+    $('#lock-err').textContent = 'Wrong password. Try again.';
+    $('#lock-pw').select();
+    if (!reduced()) $('#lock-form').animate([{ transform: 'none' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(7px)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(3px)' }, { transform: 'none' }], { duration: 320 });
+  }
+});
+$('#lock-reset').addEventListener('click', eraseComputer);
+
+$('#setup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = $('#setup-name').value.trim();
+  const p1 = $('#setup-pw').value;
+  const p2 = $('#setup-pw2').value;
+  const err = $('#setup-err');
+  if (!name) { err.textContent = 'Enter a name.'; return; }
+  if (p1 !== p2) { err.textContent = 'The passwords don’t match. Type the same password in both fields.'; return; }
+  user = await makeUser(name, p1);
+  store.set('quantum_user', user);
+  applyUser();
+  unlock();
+});
+
+function start() {
+  $('#os').hidden = false;
+  $('#os').inert = true;
+  renderShell();
+  user = store.get('quantum_user', null);
+  if (user && user.username) {
+    applyUser();
+    showLock();
+  } else {
+    user = null;
+    $('#setup').hidden = false;
+    setTimeout(() => $('#setup-name').focus(), 50);
+  }
+}
+
+function boot() {
+  const fill = $('#boot-fill');
+  let pct = 0, timer = null, done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
+    fill.style.width = '100%';
+    setTimeout(() => {
+      $('#boot').classList.add('out');
+      setTimeout(() => { $('#boot').remove(); start(); }, 450);
+    }, 350);
+  };
+  // Like a real startup bar: uneven jumps, not a steady crawl.
+  const step = () => {
+    pct = Math.min(100, pct + Math.random() * 18 + 6);
+    fill.style.width = pct + '%';
+    if (pct >= 100) finish(); else timer = setTimeout(step, 140 + Math.random() * 330);
+  };
+  timer = setTimeout(step, 900);
+  window.addEventListener('keydown', finish, { once: true });
+  $('#boot').addEventListener('pointerdown', finish, { once: true });
+}
+
+/* ================= Apps ================= */
+const APPS = {
+  browser: {
+    name: 'Browser', desc: 'Open web pages', icon: 'globe', color: 'blue', core: true, w: 780, h: 520, min: [380, 260],
+    build(body) {
+      let hist = [null], idx = 0;
+      const wikiSearch = (s) => 'https://en.wikipedia.org/w/index.php?search=' + encodeURIComponent(s);
+      const normalize = (raw) => {
+        const s = raw.trim();
+        if (!s) return null;
+        if (/^https?:\/\//i.test(s)) return s;
+        if (/^(javascript|data|vbscript|file|blob|about):/i.test(s)) return wikiSearch(s);
+        if (/\s/.test(s) || !/[.:]/.test(s)) return wikiSearch(s);
+        return 'https://' + s;
+      };
+
+      const back = h('button', { class: 'tbtn', type: 'button', title: 'Back', 'aria-label': 'Back', onclick: () => go(idx - 1) }, icon('left'));
+      const fwd = h('button', { class: 'tbtn', type: 'button', title: 'Forward', 'aria-label': 'Forward', onclick: () => go(idx + 1) }, icon('right'));
+      const reload = h('button', { class: 'tbtn', type: 'button', title: 'Reload', 'aria-label': 'Reload', onclick: () => { if (hist[idx]) frame.src = hist[idx]; } }, icon('reload'));
+      const addr = h('input', { class: 'field grow', type: 'text', placeholder: 'Search Wikipedia or enter an address', 'aria-label': 'Address', spellcheck: 'false', autocomplete: 'off' });
+      addr.addEventListener('keydown', (e) => { if (e.key === 'Enter') visit(addr.value); });
+      const ext = h('button', { class: 'tbtn', type: 'button', title: 'Open in new tab', 'aria-label': 'Open in new tab', onclick: () => { if (hist[idx]) window.open(hist[idx], '_blank', 'noopener'); } }, icon('external'));
+
+      const frame = h('iframe', { class: 'frame', title: 'Web page', sandbox: 'allow-scripts allow-forms allow-popups allow-same-origin', referrerpolicy: 'no-referrer' });
+      const quickLinks = [['Wikipedia', 'https://en.wikipedia.org'], ['Example Domain', 'https://example.com'], ['OpenStreetMap', 'https://www.openstreetmap.org'], ['Internet Archive', 'https://archive.org']];
+      const home = h('div', { class: 'browser-home' },
+        h('p', null, 'Type an address or a search in the bar above.'),
+        h('p', { class: 'sub' }, 'Pages open inside this window, and many sites refuse that. When a page stays blank, use the new tab button.'),
+        h('div', { class: 'quick' }, quickLinks.map(([name, url]) =>
+          h('button', { type: 'button', onclick: () => visit(url) }, h('b', null, name), h('span', { class: 'sub' }, url)))));
+      const view = h('div', { class: 'viewport' }, frame, home);
+      const note = h('div', { class: 'notice' }, 'Searches go to Wikipedia, because most search engines block embedding.');
+      body.append(h('div', { class: 'toolbar' }, back, fwd, reload, addr, ext), view, note);
+
+      function show(u) {
+        if (u == null) { frame.hidden = true; frame.removeAttribute('src'); home.hidden = false; addr.value = ''; }
+        else { home.hidden = true; frame.hidden = false; frame.src = u; addr.value = u; }
+        back.disabled = idx <= 0;
+        fwd.disabled = idx >= hist.length - 1;
+        ext.disabled = reload.disabled = u == null;
+      }
+      function go(i) { if (i < 0 || i >= hist.length) return; idx = i; show(hist[idx]); }
+      function visit(raw) {
+        const u = normalize(raw);
+        if (!u) return;
+        hist = hist.slice(0, idx + 1);
+        hist.push(u);
+        idx = hist.length - 1;
+        show(u);
+      }
+      show(null);
+      return { focus: () => { if (hist[idx] == null) addr.focus(); } };
+    }
+  },
+
+  appstore: {
+    name: 'App Store', desc: 'Add or remove apps', icon: 'bag', color: 'white', core: true, w: 560, h: 440, min: [340, 240],
+    build(body) {
+      const list = h('div', { class: 'list' });
+      body.append(h('p', { class: 'intro' }, 'Installed apps appear on the desktop, the taskbar and the apps menu. Removing an app closes it.'), list);
+      const render = () => {
+        list.textContent = '';
+        Object.keys(APPS).forEach((k) => {
+          const a = APPS[k];
+          let action;
+          if (a.core) action = h('span', { class: 'tag' }, 'Built in');
+          else if (prefs.installed.includes(k)) action = h('button', { class: 'btn', type: 'button', onclick: () => toggle(k) }, 'Remove');
+          else action = h('button', { class: 'btn primary', type: 'button', onclick: () => toggle(k) }, 'Install');
+          list.append(h('div', { class: 'row' }, appIcon(k, 40), h('div', { class: 'meta' }, h('b', null, a.name), h('span', { class: 'sub' }, a.desc)), action));
+        });
+      };
+      const toggle = (k) => {
+        if (prefs.installed.includes(k)) { closeWin(k); prefs.installed = prefs.installed.filter((x) => x !== k); }
+        else prefs.installed.push(k);
+        savePrefs();
+        renderShell();
+        render();
+      };
+      render();
+    }
+  },
+
+  games: {
+    name: 'Arcade', desc: 'Snake and tic-tac-toe', icon: 'pad', color: 'red', w: 460, h: 520, min: [360, 440],
+    build(body) {
+      let mode = 'snake';
+      let current = null;
+      const tabs = seg([['snake', 'Snake'], ['ttt', 'Tic-tac-toe']], () => mode, (m) => show(m), 'Game');
+      const stage = h('div', { class: 'stage' });
+      body.append(h('div', { class: 'toolbar' }, tabs.el), stage);
+      function show(m) {
+        current?.destroy?.();
+        stage.textContent = '';
+        mode = m;
+        tabs.refresh();
+        current = m === 'snake' ? snakeGame(stage) : tttGame(stage);
+      }
+      show('snake');
+      return { destroy: () => current?.destroy?.(), blur: () => current?.blur?.() };
+    }
+  },
+
+  notepad: {
+    name: 'Notes', desc: 'Write things down', icon: 'note', color: 'yellow', w: 480, h: 380, min: [300, 200],
+    build(body) {
+      const ta = h('textarea', { class: 'notes', 'aria-label': 'Notes', placeholder: 'Start typing. Notes are saved in this browser as you type.' });
+      ta.value = store.get('quantum_notes', '');
+      const status = h('span', { class: 'status' }, ta.value ? 'Saved' : '');
+      let t = null;
+      const save = () => { clearTimeout(t); store.set('quantum_notes', ta.value); status.textContent = 'Saved'; };
+      ta.addEventListener('input', () => { status.textContent = 'Saving…'; clearTimeout(t); t = setTimeout(save, 300); });
+      const download = h('button', { class: 'btn', type: 'button', onclick: () => {
+        const url = URL.createObjectURL(new Blob([ta.value], { type: 'text/plain' }));
+        const a = h('a', { href: url, download: 'notes.txt' });
+        document.body.append(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } }, icon('download'), 'Download');
+      const clear = h('button', { class: 'btn', type: 'button', onclick: () => {
+        if (ta.value && confirm('Clear all notes? This can’t be undone.')) { ta.value = ''; save(); ta.focus(); }
+      } }, icon('trash'), 'Clear');
+      body.append(h('div', { class: 'toolbar' }, download, clear, status), ta);
+      return { focus: () => ta.focus(), destroy: save };
+    }
+  },
+
+  calculator: {
+    name: 'Calculator', desc: 'Do the sums', icon: 'calc', color: 'green', w: 280, h: 410, fixed: true,
+    build(body) {
+      let acc = null, op = null, cur = '0', fresh = true, expr = '', failed = false;
+      const OPS = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+      const ex = h('div', { class: 'calc-expr' });
+      const res = h('div', { class: 'calc-res', 'aria-live': 'polite' });
+      const render = () => {
+        ex.textContent = expr;
+        res.textContent = cur;
+        res.style.fontSize = cur.length > 14 ? '18px' : cur.length > 10 ? '24px' : '32px';
+      };
+      const toStr = (n) => (Number.isFinite(n) ? String(Number(n.toPrecision(12))) : null);
+      const apply = (a, o, b) => (o === '+' ? a + b : o === '-' ? a - b : o === '*' ? a * b : b === 0 ? NaN : a / b);
+      const num = () => parseFloat(cur);
+
+      function clearAll() { acc = null; op = null; cur = '0'; fresh = true; expr = ''; failed = false; render(); }
+      function fail() { failed = true; cur = 'Can’t divide by zero'; expr = ''; acc = null; op = null; fresh = true; render(); }
+      function digit(d) {
+        if (failed) clearAll();
+        if (fresh) { cur = d; fresh = false; }
+        else if (cur.replace(/[-.]/g, '').length < 15) cur = cur === '0' ? d : cur + d;
+        render();
+      }
+      function dot() {
+        if (failed) clearAll();
+        if (fresh) { cur = '0.'; fresh = false; }
+        else if (!cur.includes('.')) cur += '.';
+        render();
+      }
+      function operator(o) {
+        if (failed) return;
+        if (op && !fresh) {
+          const r = toStr(apply(acc, op, num()));
+          if (r === null) return fail();
+          acc = parseFloat(r); cur = r;
+        } else acc = num();
+        op = o; fresh = true;
+        expr = `${toStr(acc)} ${OPS[o]}`;
+        render();
+      }
+      function equals() {
+        if (failed || !op) return;
+        const b = num();
+        const r = toStr(apply(acc, op, b));
+        if (r === null) return fail();
+        expr = `${toStr(acc)} ${OPS[op]} ${toStr(b)} =`;
+        cur = r; acc = null; op = null; fresh = true;
+        render();
+        if (!reduced()) res.animate([{ opacity: .25, transform: 'translateY(5px)' }, { opacity: 1, transform: 'none' }], { duration: 160, easing: 'ease-out' });
+      }
+      function back() {
+        if (failed) return clearAll();
+        if (fresh) return;
+        cur = cur.length > 1 && !(cur.length === 2 && cur[0] === '-') ? cur.slice(0, -1) : '0';
+        render();
+      }
+      function negate() {
+        if (failed || cur === '0') return;
+        cur = cur.startsWith('-') ? cur.slice(1) : '-' + cur;
+        render();
+      }
+
+      const key = (label, cls, fn, aria) => h('button', { class: 'key ' + cls, type: 'button', 'aria-label': aria || null, onclick: fn }, label);
+      const d = (n) => key(n, '', () => digit(n));
+      body.append(h('div', { class: 'calc' },
+        h('div', { class: 'calc-screen' }, ex, res),
+        h('div', { class: 'keys' },
+          key('C', 'clr', clearAll, 'Clear'), key('⌫', 'op', back, 'Backspace'), key('±', 'op', negate, 'Change sign'), key('÷', 'op', () => operator('/'), 'Divide'),
+          d('7'), d('8'), d('9'), key('×', 'op', () => operator('*'), 'Multiply'),
+          d('4'), d('5'), d('6'), key('−', 'op', () => operator('-'), 'Subtract'),
+          d('1'), d('2'), d('3'), key('+', 'op', () => operator('+'), 'Add'),
+          key('0', 'wide', () => digit('0')), key('.', '', dot, 'Decimal point'), key('=', 'eq', equals, 'Equals'))));
+      render();
+
+      const onKey = (e) => {
+        if (focusedKey !== 'calculator' || e.ctrlKey || e.metaKey || e.altKey) return;
+        const k = e.key;
+        if (/^\d$/.test(k)) digit(k);
+        else if (k === '.' || k === ',') dot();
+        else if (k.length === 1 && '+-*/'.includes(k)) operator(k);
+        else if (k === 'Enter' || k === '=') equals();
+        else if (k === 'Backspace') back();
+        else if (k === 'Escape') clearAll();
+        else return;
+        e.preventDefault();
+      };
+      document.addEventListener('keydown', onKey);
+      return { destroy: () => document.removeEventListener('keydown', onKey) };
+    }
+  },
+
+  settings: {
+    name: 'Settings', desc: 'Theme, wallpaper and account', icon: 'sliders', color: 'grey', core: true, w: 580, h: 600, min: [360, 300],
+    build(body) {
+      const pane = h('div', { class: 'pane' });
+      const picker = h('input', { type: 'file', accept: 'image/*', hidden: true });
+      body.append(pane, picker);
+      let msg = '';
+
+      const showError = (text) => { msg = text; render(); };
+      async function addFile(file) {
+        msg = '';
+        try { const err = addCustom(await readImage(file), file.name); if (err) showError(err); }
+        catch (e) { showError(e.message); }
+      }
+      picker.addEventListener('change', () => { const f = picker.files[0]; picker.value = ''; if (f) addFile(f); });
+      function useAddress(value) {
+        const v = value.trim();
+        if (!/^https?:\/\/\S+$/i.test(v)) { showError('Enter a full image address that starts with http:// or https://.'); return; }
+        const probe = new Image();
+        probe.onload = () => {
+          let name = v;
+          try { name = new URL(v).hostname; } catch { /* keep the raw address */ }
+          const err = addCustom(v, name);
+          if (err) showError(err);
+        };
+        probe.onerror = () => showError('Couldn’t load that address. Check the link, or save the image and add the file instead.');
+        probe.src = v;
+      }
+
+      function render() {
+        const top = pane.scrollTop;
+        pane.textContent = '';
+
+        const mode = seg([['light', 'Light'], ['dark', 'Dark']], () => prefs.theme, setTheme, 'Appearance');
+
+        const looks = Object.keys(THEMES).map((id) => {
+          const t = THEMES[id][prefs.theme];
+          return h('button', { class: 'look-btn', type: 'button', 'aria-pressed': String(prefs.look === id), onclick: () => setLook(id) },
+            h('span', { class: 'look' }, ['--desk', '--chrome', '--paper', '--accent'].map((k) => h('i', { style: `background:${t[k]}` }))),
+            h('span', null, THEMES[id].name));
+        });
+
+        const accents = [
+          h('button', { class: 'btn', type: 'button', 'aria-pressed': String(prefs.accent === 'auto'), onclick: () => setAccent('auto') }, 'Match theme'),
+          ...Object.entries(ACCENTS).map(([id, a]) => h('button', {
+            class: 'dotbtn', type: 'button', title: a.name, 'aria-label': a.name + ' accent', 'aria-pressed': String(prefs.accent === id),
+            style: `background:${prefs.theme === 'dark' ? a.c[1] : a.c[0]}`, onclick: () => setAccent(id)
+          }))
+        ];
+
+        const tiles = WALLS.map((w) => h('button', { class: 'swatch-btn', type: 'button', 'aria-pressed': String(prefs.wall === w.id), onclick: () => setWall(w.id) },
+          h('span', { class: 'swatch w-' + w.id }), h('span', null, w.name)));
+        customWalls.forEach((w) => {
+          const sw = h('span', { class: 'swatch w-custom fit-fill' });
+          sw.style.backgroundImage = cssUrl(w.src);
+          tiles.push(h('div', { class: 'tile' },
+            h('button', { class: 'swatch-btn', type: 'button', 'aria-pressed': String(prefs.wall === 'custom:' + w.id), 'aria-label': 'Wallpaper ' + w.name, onclick: () => setWall('custom:' + w.id) },
+              sw, h('span', null, w.name.replace(/\.[^.]+$/, '').slice(0, 12))),
+            h('button', { class: 'swatch-x', type: 'button', title: 'Remove image', 'aria-label': 'Remove ' + w.name, onclick: () => removeCustom(w.id) }, icon('x'))));
+        });
+        tiles.push(h('button', { class: 'swatch-btn', type: 'button', onclick: () => picker.click() },
+          h('span', { class: 'swatch add' }, icon('plus')), h('span', null, 'Add image')));
+
+        const address = h('input', { class: 'field grow', type: 'text', placeholder: 'Or paste an image address', 'aria-label': 'Image address', spellcheck: 'false' });
+        address.addEventListener('keydown', (e) => { if (e.key === 'Enter') useAddress(address.value); });
+
+        const fit = wallSrc(prefs.wall)
+          ? h('div', { class: 'row-actions' }, h('span', { class: 'sub', style: 'align-self:center' }, 'Image fit'),
+              seg([['fill', 'Fill'], ['fit', 'Fit'], ['tile', 'Tile']], () => prefs.wallFit, setWallFit, 'Image fit').el)
+          : null;
+
+        pane.append(
+          h('section', null, h('h3', null, 'Appearance'), mode.el),
+          h('section', null, h('h3', null, 'Theme'), h('div', { class: 'looks' }, looks)),
+          h('section', null, h('h3', null, 'Accent color'), h('div', { class: 'accents' }, accents)),
+          h('section', { style: 'display:grid;gap:12px' },
+            h('h3', { style: 'margin:0' }, 'Wallpaper'),
+            h('div', { class: 'swatches' }, tiles),
+            fit,
+            h('div', { class: 'row-actions' }, address, h('button', { class: 'btn', type: 'button', onclick: () => useAddress(address.value) }, 'Use address')),
+            h('p', { class: 'err', role: 'alert' }, msg),
+            h('p', { class: 'sub' }, 'You can also drop an image onto the desktop. Images are shrunk and kept in this browser.')),
+          h('section', null, h('h3', null, 'Account'),
+            h('p', { class: 'sub', style: 'margin-bottom:8px' }, `Signed in as ${user ? user.username : 'guest'}.`),
+            h('div', { class: 'actions' },
+              h('button', { class: 'btn', type: 'button', onclick: lockSystem }, 'Lock now'),
+              h('button', { class: 'btn danger', type: 'button', onclick: eraseComputer }, 'Erase this computer…'))));
+        pane.scrollTop = top;
+      }
+      render();
+      const off = onPrefs(() => { msg = ''; render(); });
+      return { destroy: off };
+    }
+  },
+
+  terminal: {
+    name: 'Terminal', desc: 'Type commands', icon: 'term', color: 'grey', w: 580, h: 360, min: [320, 200],
+    build(body) {
+      const slug = ((user && user.username) || 'user').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'user';
+      const promptText = `${slug}@quantumos:~$`;
+      const out = h('div', { class: 'out' });
+      const input = h('input', { type: 'text', spellcheck: 'false', autocomplete: 'off', autocapitalize: 'off', 'aria-label': 'Command' });
+      const term = h('div', { class: 'term' }, out, h('div', { class: 'inline' }, h('span', { class: 'prompt' }, promptText), input));
+      body.append(term);
+
+      const history = [];
+      let hi = 0;
+      const print = (text, cls) => { out.append(h('div', { class: cls || null }, text)); };
+      const findApp = (name) => Object.keys(APPS).find((k) => k === name || APPS[k].name.toLowerCase() === name);
+
+      const commands = {
+        help() {
+          print('Commands:');
+          print('  help            show this list');
+          print('  apps            list installed apps');
+          print('  open <app>      open an app');
+          print('  theme [mode]    show or set light or dark');
+          print('  neofetch        system summary');
+          print('  date, whoami, uptime, echo <text>');
+          print('  clear, lock, reboot');
+        },
+        clear() { out.textContent = ''; },
+        date() { print(new Date().toString()); },
+        whoami() { print(user ? user.username : 'guest'); },
+        echo(args) { print(args.join(' ')); },
+        uptime() { const s = Math.floor((Date.now() - startedAt) / 1000); print(`up ${Math.floor(s / 60)}m ${s % 60}s`); },
+        apps() { installedKeys().forEach((k) => print(`${k.padEnd(12)}${APPS[k].desc}`)); },
+        open(args) {
+          const k = findApp((args[0] || '').toLowerCase());
+          if (!k) print(`open: no app called “${args[0] || ''}”. Try apps.`, 'err');
+          else if (!installedKeys().includes(k)) print(`open: ${APPS[k].name} isn’t installed. Install it from the App Store.`, 'err');
+          else openApp(k);
+        },
+        theme(args) {
+          const m = (args[0] || '').toLowerCase();
+          if (!m) print(prefs.theme);
+          else if (m === 'light' || m === 'dark') setTheme(m);
+          else print('theme: use light or dark.', 'err');
+        },
+        neofetch() {
+          [`${slug}@quantumos`, `OS       ${OS_NAME}`, `Windows  ${wins.size} open`, `Screen   ${innerWidth}x${innerHeight}`, `Theme    ${prefs.theme}`].forEach((l) => print(l));
+        },
+        lock() { lockSystem(); },
+        reboot() { location.reload(); }
+      };
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp') { if (history.length) { hi = Math.max(0, hi - 1); input.value = history[hi]; } e.preventDefault(); return; }
+        if (e.key === 'ArrowDown') { hi = Math.min(history.length, hi + 1); input.value = history[hi] || ''; e.preventDefault(); return; }
+        if (e.key !== 'Enter') return;
+        const line = input.value.trim();
+        input.value = '';
+        out.append(h('div', null, h('span', { class: 'prompt' }, promptText), line));
+        if (line) {
+          history.push(line);
+          const [name, ...args] = line.split(/\s+/);
+          const fn = Object.prototype.hasOwnProperty.call(commands, name) ? commands[name] : null;
+          if (fn) fn(args); else print(`${name}: command not found. Type help to list commands.`, 'err');
+        }
+        hi = history.length;
+        term.scrollTop = term.scrollHeight;
+      });
+      term.addEventListener('click', () => { if (!String(getSelection())) input.focus(); });
+      print(`${OS_NAME} shell. Type help to list commands.`, 'dim');
+      return { focus: () => input.focus() };
+    }
+  }
+};
+
+/* ---------- Snake ---------- */
+function snakeGame(parent) {
+  const N = 16, S = 20;
+  const canvas = h('canvas', { width: N * S, height: N * S, role: 'img', 'aria-label': 'Snake game board' });
+  const scoreEl = h('span');
+  const bestEl = h('span');
+  parent.append(h('div', { class: 'snake' },
+    h('div', { class: 'hud' }, scoreEl, bestEl),
+    canvas,
+    h('p', { class: 'hint' }, 'Arrow keys, WASD or swipe to move. Space pauses.')));
+  const ctx = canvas.getContext('2d');
+  let best = Number(store.get('quantum_snake_best', 0)) || 0;
+  let snake, dir, queue, food, score, timer = null, state = 'ready', message = '';
+
+  function reset() {
+    snake = [{ x: 8, y: 8 }, { x: 7, y: 8 }, { x: 6, y: 8 }];
+    dir = { x: 1, y: 0 };
+    queue = [];
+    score = 0;
+    state = 'ready';
+    message = 'Press an arrow key to start';
+    placeFood();
+    hud();
+    draw();
+  }
+  function placeFood() {
+    const free = [];
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (!snake.some((p) => p.x === x && p.y === y)) free.push({ x, y });
+    food = free.length ? free[Math.floor(Math.random() * free.length)] : null;
+  }
+  function hud() { scoreEl.textContent = 'Score ' + score; bestEl.textContent = 'Best ' + best; }
+  function end(text) {
+    state = 'over';
+    message = text + ` Score ${score}. Press an arrow key to play again.`;
+    if (score > best) { best = score; store.set('quantum_snake_best', best); }
+    hud();
+    draw();
+    if (!reduced()) canvas.animate([{ transform: 'none' }, { transform: 'translateX(-7px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-3px)' }, { transform: 'none' }], { duration: 280 });
+  }
+  function schedule() {
+    clearTimeout(timer);
+    if (state === 'run') timer = setTimeout(step, Math.max(55, 125 - score * 3));
+  }
+  function step() {
+    if (queue.length) dir = queue.shift();
+    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+    const eating = !!food && head.x === food.x && head.y === food.y;
+    const body = eating ? snake : snake.slice(0, -1);
+    if (head.x < 0 || head.y < 0 || head.x >= N || head.y >= N || body.some((p) => p.x === head.x && p.y === head.y)) { end('Game over.'); return; }
+    snake.unshift(head);
+    if (eating) {
+      score++;
+      placeFood();
+      hud();
+      if (!reduced()) scoreEl.animate([{ transform: 'scale(1.35)' }, { transform: 'none' }], { duration: 180, easing: 'ease-out' });
+      if (!food) { end('You filled the board.'); return; }
+    } else snake.pop();
+    draw();
+    schedule();
+  }
+  function turn(d) {
+    if (state === 'over') reset();
+    const last = queue.length ? queue[queue.length - 1] : dir;
+    if (d.x === -last.x && d.y === -last.y) return;
+    if (!(d.x === last.x && d.y === last.y) && queue.length < 2) queue.push(d);
+    if (state !== 'run') { state = 'run'; schedule(); draw(); }
+  }
+  function pause() { if (state === 'run') { state = 'pause'; message = 'Paused'; clearTimeout(timer); draw(); } }
+  function togglePause() {
+    if (state === 'run') pause();
+    else if (state === 'over') reset();
+    else { state = 'run'; schedule(); draw(); }
+  }
+
+  function draw() {
+    const bg = cssVar('--paper'), alt = cssVar('--chrome'), ink = cssVar('--ink'), acc = cssVar('--accent'), bad = cssVar('--bad');
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      ctx.fillStyle = (x + y) % 2 ? alt : bg;
+      ctx.fillRect(x * S, y * S, S, S);
+    }
+    snake.forEach((p, i) => {
+      ctx.fillStyle = i === 0 ? acc : ink;
+      ctx.fillRect(p.x * S + 1, p.y * S + 1, S - 2, S - 2);
+    });
+    if (food) {
+      ctx.fillStyle = bad;
+      ctx.beginPath();
+      ctx.arc(food.x * S + S / 2, food.y * S + S / 2, S / 2 - 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (state !== 'run') {
+      ctx.globalAlpha = .85;
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, N * S, N * S);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = ink;
+      ctx.textAlign = 'center';
+      ctx.font = "700 16px 'Atkinson Hyperlegible', system-ui, sans-serif";
+      const words = message.split(' ');
+      const lines = [];
+      let line = '';
+      words.forEach((w) => {
+        if (ctx.measureText((line + ' ' + w).trim()).width > N * S - 40) { lines.push(line); line = w; }
+        else line = (line + ' ' + w).trim();
+      });
+      lines.push(line);
+      lines.forEach((l, i) => ctx.fillText(l, N * S / 2, N * S / 2 + (i - (lines.length - 1) / 2) * 22));
+    }
+  }
+
+  const KEYS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0] };
+  function onKey(e) {
+    if (focusedKey !== 'games' || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest && e.target.closest('input, textarea')) return;
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (KEYS[k]) { turn({ x: KEYS[k][0], y: KEYS[k][1] }); e.preventDefault(); }
+    else if (k === ' ') { togglePause(); e.preventDefault(); }
+  }
+  document.addEventListener('keydown', onKey);
+
+  let sx = 0, sy = 0;
+  canvas.addEventListener('pointerdown', (e) => { sx = e.clientX; sy = e.clientY; });
+  canvas.addEventListener('pointerup', (e) => {
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) { if (state !== 'run') togglePause(); return; }
+    if (Math.abs(dx) > Math.abs(dy)) turn({ x: Math.sign(dx), y: 0 });
+    else turn({ x: 0, y: Math.sign(dy) });
+  });
+
+  reset();
+  return {
+    blur: pause,
+    destroy() { clearTimeout(timer); state = 'dead'; document.removeEventListener('keydown', onKey); }
+  };
+}
+
+/* ---------- Tic-tac-toe ---------- */
+function tttGame(parent) {
+  const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  let board, turn, over, winLine, winner, mode = 'friend', timer = null, shown = Array(9).fill('');
+  const status = h('p', { class: 'ttt-status', 'aria-live': 'polite' });
+  const cells = Array.from({ length: 9 }, (_, i) => h('button', { class: 'cell', type: 'button', onclick: () => play(i) }));
+  const modes = seg([['friend', 'Two players'], ['cpu', 'Play the computer']], () => mode, (m) => { mode = m; modes.refresh(); newGame(); }, 'Opponent');
+  parent.append(h('div', { class: 'ttt-wrap' },
+    status,
+    h('div', { class: 'ttt' }, cells),
+    h('div', { class: 'ttt-controls' }, modes.el, h('button', { class: 'btn', type: 'button', onclick: () => newGame() }, 'New game'))));
+
+  const result = (b) => {
+    for (const l of LINES) if (b[l[0]] && b[l[0]] === b[l[1]] && b[l[0]] === b[l[2]]) return { p: b[l[0]], line: l };
+    return null;
+  };
+  function render() {
+    const before = shown;
+    shown = board.slice();
+    cells.forEach((c, i) => {
+      c.textContent = board[i];
+      if (board[i] && !before[i] && !reduced()) c.animate([{ transform: 'scale(.4)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { duration: 190, easing: 'cubic-bezier(.2,.9,.3,1.4)' });
+      c.classList.toggle('o', board[i] === 'O');
+      c.classList.toggle('win', over && winLine.includes(i));
+      c.disabled = over || !!board[i] || (mode === 'cpu' && turn === 'O');
+      c.setAttribute('aria-label', `Square ${i + 1}, ${board[i] || 'empty'}`);
+    });
+    if (winner) status.textContent = mode === 'cpu' ? (winner === 'X' ? 'You win.' : 'The computer wins.') : `${winner} wins.`;
+    else if (over) status.textContent = 'It’s a draw.';
+    else status.textContent = mode === 'cpu' ? (turn === 'X' ? 'Your move (X).' : 'Computer is thinking…') : `${turn}’s turn.`;
+  }
+  function place(i) {
+    board[i] = turn;
+    const r = result(board);
+    if (r) { over = true; winLine = r.line; winner = r.p; }
+    else if (board.every(Boolean)) over = true;
+    else turn = turn === 'X' ? 'O' : 'X';
+    render();
+  }
+  function play(i) {
+    if (over || board[i] || (mode === 'cpu' && turn !== 'X')) return;
+    place(i);
+    if (!over && mode === 'cpu') timer = setTimeout(() => place(cpuMove()), 350);
+  }
+  function score(b, t, d) {
+    const r = result(b);
+    if (r) return r.p === 'O' ? 10 - d : d - 10;
+    if (b.every(Boolean)) return 0;
+    let best = t === 'O' ? -Infinity : Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (b[i]) continue;
+      b[i] = t;
+      const s = score(b, t === 'O' ? 'X' : 'O', d + 1);
+      b[i] = '';
+      best = t === 'O' ? Math.max(best, s) : Math.min(best, s);
+    }
+    return best;
+  }
+  function cpuMove() {
+    let bestScore = -Infinity, moves = [];
+    for (let i = 0; i < 9; i++) {
+      if (board[i]) continue;
+      board[i] = 'O';
+      const s = score(board, 'X', 1);
+      board[i] = '';
+      if (s > bestScore) { bestScore = s; moves = [i]; } else if (s === bestScore) moves.push(i);
+    }
+    return moves[Math.floor(Math.random() * moves.length)];
+  }
+  function newGame() {
+    clearTimeout(timer);
+    board = Array(9).fill('');
+    turn = 'X'; over = false; winLine = []; winner = null;
+    render();
+  }
+  newGame();
+  return { destroy: () => clearTimeout(timer) };
+}
+
+/* ================= Go ================= */
+applyTheme();
+applyWall();
+applyBrightness();
+updateNet();
+tickClock();
+setInterval(tickClock, 1000);
+boot();
+})();
+</script>
+</body>
+</html>
